@@ -1,5 +1,9 @@
 package com.huobi.api;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 /**
  * ApiException if api returns error.
  * 
@@ -23,4 +27,8 @@ public class ApiException extends RuntimeException {
     return this.errCode;
   }
 
+  public static void main(String[] args) {
+      String date = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new java.util.Date(1512117000 * 1000));
+      System.out.println(date);
+  }
 }

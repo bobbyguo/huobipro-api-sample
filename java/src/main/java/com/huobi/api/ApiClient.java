@@ -33,8 +33,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.huobi.api.request.CreateOrderRequest;
+import com.huobi.api.request.KlineRequest;
+import com.huobi.api.request.PlaceOrderRequest;
 import com.huobi.api.response.Account;
+import com.huobi.api.response.AccountBalance;
 import com.huobi.api.response.ApiResponse;
+import com.huobi.api.response.Kline;
+import com.huobi.api.response.Klines;
 import com.huobi.api.response.Symbol;
 
 import okhttp3.MediaType;
@@ -55,7 +60,7 @@ public class ApiClient {
   static final int READ_TIMEOUT = 5;
   static final int WRITE_TIMEOUT = 5;
 
-  static final String API_HOST = "be.huobi.com";
+  static final String API_HOST = "api.huobi.pro";
 
   static final String API_URL = "https://" + API_HOST;
   static final MediaType JSON = MediaType.parse("application/json");
@@ -102,6 +107,20 @@ public class ApiClient {
   }
 
   /**
+   * 获取k线数据
+   * @param req
+   * @return
+   */
+  public Klines getKlines(KlineRequest req) {
+      ApiResponse<List<Kline>> resp =
+              get("/market/history/kline", JsonUtil.convertValue(req, new TypeReference<Map<String,String>>() {
+            }), new TypeReference<ApiResponse<List<Kline>>>() {});
+      Klines klines = new Klines();
+      klines.setKlines(resp.checkAndReturn());
+      klines.setTs(resp.ts);
+      return klines;
+  }
+  /**
    * 查询所有账户信息
    * 
    * @return List of accounts.
@@ -112,6 +131,22 @@ public class ApiClient {
     return resp.checkAndReturn();
   }
 
+  /**
+   * 查询指定账户余额
+   * @param accountId
+   * @return
+   */
+  public AccountBalance getAccountBalance(Long accountId) {
+      ApiResponse<AccountBalance> resp =
+              get("/v1/account/accounts/"+accountId+"/balance", null, new TypeReference<ApiResponse<AccountBalance>>() {});
+          return resp.checkAndReturn();
+  }
+  
+  public String placeOrder(PlaceOrderRequest req) {
+      ApiResponse<String> resp =
+              post("/v1/order/orders/place", req, new TypeReference<ApiResponse<String>>() {});
+      return resp.checkAndReturn();
+  }
   /**
    * 创建订单（未执行)
    * 
@@ -314,6 +349,9 @@ class JsonUtil {
     return objectMapper.readValue(s, ref);
   }
 
+  public static <T> T convertValue(Object fromValue, TypeReference<T> ref) {
+      return objectMapper.convertValue(fromValue, ref);
+  }
   static final ObjectMapper objectMapper = createObjectMapper();
 
   static ObjectMapper createObjectMapper() {
